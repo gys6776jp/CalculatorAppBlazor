@@ -1,0 +1,111 @@
+﻿@page "/calculator"
+@using Microsoft.AspNetCore.Components.Web
+@using global::Calculator.UseCase
+@using global::Calculator.UseCase.Dto
+@rendermode Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
+@inject CalculatorUseCase UseCase
+
+<h3>Calculator</h3>
+
+<div style="margin-bottom: 10px;">
+    <input type="number" step="any" @bind="a" placeholder="数値A" />
+    <input type="number" step="any" @bind="b" placeholder="数値B" />
+
+    <select @bind="operation">
+        <option value="add">+</option>
+        <option value="subtract">-</option>
+        <option value="multiply">×</option>
+        <option value="divide">÷</option>
+    </select>
+
+    <button @onclick="CalculateAndSave">計算</button>
+</div>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color:darkred">エラー：@errorMessage</p>
+}
+else if (calculated)
+{
+    <p>結果：@result</p>
+}
+
+<h4>計算履歴</h4>
+@if (histories is null)
+{
+    <p>読み込み中...</p>
+}
+else if (!histories.Any())
+{
+    <p>履歴はありません。</p>
+}
+else
+{
+    <table border="1" cellpadding="5">
+        <thead>
+            <tr>
+                <th>A</th>
+                <th>演算</th>
+                <th>B</th>
+                <th>結果</th>
+                <th>日時</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var h in histories.OrderByDescending(h => h.CreatedAt))
+            {
+                <tr>
+                    <td>@h.A</td>
+                    <td>@h.Operation</td>
+                    <td>@h.B</td>
+                    <td>@h.Result</td>
+                    <td>@h.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private decimal a;
+    private decimal b;
+    private string operation = "add";
+    private decimal result;
+    private string? errorMessage;
+    private bool calculated = false;
+
+    // DTO 型に変更
+    private List<CalculationHistoryDto>? histories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadHistoriesAsync();
+    }
+
+    private async Task LoadHistoriesAsync()
+    {
+        // Web は DTO を受け取るだけ
+        histories = await UseCase.GetAllHistoriesAsync();
+    }
+
+    private async Task CalculateAndSave()
+    {
+        try
+        {
+            errorMessage = null;
+
+            // 計算 + DB保存（非同期）
+            result = await UseCase.CalculateAndSaveAsync(a, b, operation);
+            calculated = true;
+
+            // 履歴更新
+            await LoadHistoriesAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            result = 0;
+            calculated = false;
+        }
+    }
+}

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/ソリューション項目/">
+    <File Path=".gitignore" />
+  </Folder>
+  <Project Path="Calculator.Application/Calculator.UseCase.csproj" />
+  <Project Path="Calculator.Domain/Calculator.Domain.csproj" />
+  <Project Path="Calculator.Infrastructure/Calculator.Infrastructure.csproj" Id="c37860b4-41bc-4c7c-87f8-440bf35c7d21" />
+  <Project Path="Calculator.Web/Calculator.Web.csproj" />
+</Solution>
