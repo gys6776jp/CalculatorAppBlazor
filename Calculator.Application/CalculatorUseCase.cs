@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace Calculator.UseCase
 {
+    // 計算ユースケース
+    // - Domain の Calculator を使って計算
+    // - 計算結果を履歴として DB に保存
+    // - Web 層向けに DTO で履歴を提供
     public class CalculatorUseCase
     {
-        private readonly Calculator.Domain.Calculator _calculator;
-        private readonly ICalculationHistoryRepository _repository;
+        private readonly Calculator.Domain.Calculator _calculator;          // 四則演算処理クラス
+        private readonly ICalculationHistoryRepository _repository;          // 履歴保存・取得用リポジトリ
 
         public CalculatorUseCase(ICalculationHistoryRepository repository)
         {
@@ -21,6 +25,7 @@ namespace Calculator.UseCase
         // 計算 + DB保存を非同期でまとめる
         public async Task<decimal> CalculateAndSaveAsync(decimal a, decimal b, string operation)
         {
+            // 四則演算を選択して結果を計算
             var result = operation switch
             {
                 "add" => _calculator.Add(a, b),
@@ -39,12 +44,12 @@ namespace Calculator.UseCase
                     B = b,
                     Operation = operation,
                     Result = result,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now // UTC に変換は AppDbContext で対応済み
                 });
             }
             catch (Exception ex)
             {
-                // 例外内容を詳細に出力
+                // 例外を詳細にログ出力
                 Console.WriteLine("Exception: " + ex.Message);
                 if (ex.InnerException != null)
                     Console.WriteLine("Inner exception: " + ex.InnerException.Message);
@@ -56,12 +61,14 @@ namespace Calculator.UseCase
             return result;
         }
 
-        // 履歴取得（DTO で返す）
+        // 計算履歴の取得（DTO で返す）
         public async Task<List<CalculationHistoryDto>> GetAllHistoriesAsync()
         {
             try
             {
                 var histories = await _repository.GetAllAsync();
+
+                // Domain のエンティティを Web 層向け DTO に変換
                 return histories.Select(h => new CalculationHistoryDto
                 {
                     A = h.A,
@@ -73,6 +80,7 @@ namespace Calculator.UseCase
             }
             catch (Exception ex)
             {
+                // 例外を詳細にログ出力
                 Console.WriteLine("GetAllHistoriesAsync Exception: " + ex.Message);
                 if (ex.InnerException != null)
                     Console.WriteLine("Inner exception: " + ex.InnerException.Message);

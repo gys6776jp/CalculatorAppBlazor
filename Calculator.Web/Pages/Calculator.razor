@@ -8,9 +8,12 @@
 <h3>Calculator</h3>
 
 <div style="margin-bottom: 10px;">
+    @* 数値A入力 *@
     <input type="number" step="any" @bind="a" placeholder="数値A" />
+    @* 数値B入力 *@
     <input type="number" step="any" @bind="b" placeholder="数値B" />
 
+    @* 演算選択 *@
     <select @bind="operation">
         <option value="add">+</option>
         <option value="subtract">-</option>
@@ -18,29 +21,35 @@
         <option value="divide">÷</option>
     </select>
 
+    @* 計算ボタン *@
     <button @onclick="CalculateAndSave">計算</button>
 </div>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
+    @* エラー表示 *@
     <p style="color:darkred">エラー：@errorMessage</p>
 }
 else if (calculated)
 {
+    @* 計算結果表示 *@
     <p>結果：@result</p>
 }
 
 <h4>計算履歴</h4>
 @if (histories is null)
 {
+    @* 履歴読み込み中 *@
     <p>読み込み中...</p>
 }
 else if (!histories.Any())
 {
+    @* 履歴が空の場合 *@
     <p>履歴はありません。</p>
 }
 else
 {
+    @* 履歴テーブル表示 *@
     <table border="1" cellpadding="5">
         <thead>
             <tr>
@@ -67,18 +76,25 @@ else
 }
 
 @code {
+    // 入力値A
     private decimal a;
+    // 入力値B
     private decimal b;
+    // 選択された演算種別
     private string operation = "add";
+    // 計算結果
     private decimal result;
+    // エラーメッセージ
     private string? errorMessage;
+    // 計算実行済みフラグ
     private bool calculated = false;
 
-    // DTO 型に変更
+    // 履歴リスト (DTO)
     private List<CalculationHistoryDto>? histories;
 
     protected override async Task OnInitializedAsync()
     {
+        // 初期表示時に履歴をロード
         await LoadHistoriesAsync();
     }
 
@@ -92,17 +108,19 @@ else
     {
         try
         {
+            // 前回のエラーをクリア
             errorMessage = null;
 
             // 計算 + DB保存（非同期）
             result = await UseCase.CalculateAndSaveAsync(a, b, operation);
             calculated = true;
 
-            // 履歴更新
+            // 履歴を再ロードして最新を反映
             await LoadHistoriesAsync();
         }
         catch (Exception ex)
         {
+            // 例外発生時の処理
             errorMessage = ex.Message;
             result = 0;
             calculated = false;
