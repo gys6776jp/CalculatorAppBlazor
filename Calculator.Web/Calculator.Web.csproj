@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Calculator.Application\Calculator.UseCase.csproj" />
+    <ProjectReference Include="..\Calculator.UseCase\Calculator.UseCase.csproj" />
   </ItemGroup>
 
 </Project>
